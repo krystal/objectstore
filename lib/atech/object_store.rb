@@ -1,5 +1,3 @@
-require 'mysql2'
-
 module Atech
   module ObjectStore
     VERSION = '0.0.1'
@@ -8,7 +6,7 @@ module Atech
     class Error < StandardError; end
     
     class << self
-      attr_accessor :mysql
+      attr_accessor :backend
     end
     
   end

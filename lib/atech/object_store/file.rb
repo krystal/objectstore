@@ -11,7 +11,7 @@ module Atech
       ## Returns a new file object for the given ID. If no file is found a FileNotFound exception will be raised
       ## otherwise the File object will be returned.
       def self.find_by_id(id)
-        result = ObjectStore.mysql.query("SELECT * FROM files WHERE id = #{id.to_i}").first || raise(FileNotFound, "File not found with id '#{id.to_i}'")
+        result = ObjectStore.backend.query("SELECT * FROM files WHERE id = #{id.to_i}").first || raise(FileNotFound, "File not found with id '#{id.to_i}'")
         self.new(result)
       end
       
@@ -49,15 +49,20 @@ module Atech
         ##Create an insert query
         columns = options.keys.join('`,`')
         data    = options.values.map { |data| escape_and_quote(data.to_s) }.join(',')
-        ObjectStore.mysql.query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
+        ObjectStore.backend.query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
 
         ## Return a new File object
-        self.new(options.merge({:id => ObjectStore.mysql.last_id}))
+        self.new(options.merge({:id => ObjectStore.backend.last_id}))
       end
       
       ## Initialises a new File object with the hash of attributes from a MySQL query
       def initialize(attributes)
         @attributes = attributes
+      end
+      
+      ## Returns details about the file
+      def inspect
+        "#<Atech::ObjectStore::File[#{id}] name=#{name}>"
       end
       
       ## Returns the ID of the file
@@ -98,28 +103,28 @@ module Atech
       
       ## Appends data to the end of the current blob and updates the size and update time as appropriate.
       def append(data)
-        ObjectStore.mysql.query("UPDATE files SET `blob` = CONCAT(`blob`, #{self.class.escape_and_quote(data)}), `size` = `size` + #{data.bytesize}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
+        ObjectStore.backend.query("UPDATE files SET `blob` = CONCAT(`blob`, #{self.class.escape_and_quote(data)}), `size` = `size` + #{data.bytesize}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
       end
       
       ## Overwrites any data which is stored in the file
       def overwrite(data)
-        ObjectStore.mysql.query("UPDATE files SET `blob` = #{self.class.escape_and_quote(data)}, `size` = #{data.bytesize}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
+        ObjectStore.backend.query("UPDATE files SET `blob` = #{self.class.escape_and_quote(data)}, `size` = #{data.bytesize}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
       end
       
       ## Changes the name for a file
       def rename(name)
-        ObjectStore.mysql.query("UPDATE files SET `name` = #{self.class.escape_and_quote(name)}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
+        ObjectStore.backend.query("UPDATE files SET `name` = #{self.class.escape_and_quote(name)}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
       end
       
       ## Removes the file from the database
       def delete
-        ObjectStore.mysql.query("DELETE FROM files WHERE id = #{@attributes['id']}")
+        ObjectStore.backend.query("DELETE FROM files WHERE id = #{@attributes['id']}")
       end
             
       private
       
       def self.escape_and_quote(string)
-        "'#{ObjectStore.mysql.escape(string)}'"
+        "'#{ObjectStore.backend.escape(string)}'"
       end
       
       def self.time_now
