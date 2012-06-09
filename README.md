@@ -26,6 +26,7 @@ Once you have the gem installed, you will need to point it to a MySQL Client. Th
 `Mysql2::Client` or something pooled if you're using this in a multi-threaded environment.
 
 ```ruby
+require 'atech/object_store'
 Atech::ObjectStore.backend = Mysql2::Client(:database => 'objectstore')
 ```
 
