@@ -44,8 +44,9 @@ store these on your file system but you want to be able to easily replicate thes
 for DR purposes. 
 
 Our primary database contains a table of attachments which include links back to their original e-mail but
-also a key to identity the file in our object store. When the user requests the attachment, the application
-will serve it from the data store.
+also a key to identify the file in our object store. When the user requests the attachment, the application
+will serve it from the data store by looking it up and then streaming it as appropriate (after running
+various authorisation checks).
 
 ## Usage
 
