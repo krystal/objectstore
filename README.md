@@ -19,7 +19,7 @@ in a datastore which can easily be replicated to other environments.
 To get started, just add the following to your Gemfile.
 
 ```ruby
-gem 'atech-objectstore'
+gem 'objectstore'
 ```
 
 Once you have the gem installed, you will need to point it to a MySQL Client. This can be a clean
