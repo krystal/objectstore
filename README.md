@@ -40,7 +40,7 @@ mysql -p objectstore < schema.sql
 
 ## Usage Example
 
-Let's imagine you've developed a e-mail platform and you need to store e-mail attachment files. You can
+Let's imagine you've developed an e-mail platform and you need to store e-mail attachment files. You can
 store these on your file system but you want to be able to easily replicate these to an offsite location
 for DR purposes. 
 
