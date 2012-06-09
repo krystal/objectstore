@@ -9,7 +9,7 @@ in a datastore which can easily be replicated to other environments.
 
 ## Background
 
-* We want to be able to replicate small files from our application other servers.
+* We want to be able to replicate small files from our application to other servers.
 * We want the backend system to be simple and easy to deploy.
 * We don't want to store these files on our primary database server.
 * We're not Facebook or Twitter.
