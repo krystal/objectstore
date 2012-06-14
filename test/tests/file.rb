@@ -110,4 +110,12 @@ class TestFile < Test::Unit::TestCase
     assert_equal File.size(local_path), new_file.size
   end
   
+  def test_copying_large_files
+    Atech::ObjectStore.maximum_file_size = 1024
+    Atech::ObjectStore::File.add_file('size-test-file.txt', "Tiny little data")
+    assert_raise(Atech::ObjectStore::File::FileDataTooBig) { Atech::ObjectStore::File.add_file('size-test-file2.txt', "a" * 1024 * 1024) }
+  ensure
+    Atech::ObjectStore.maximum_file_size = nil
+  end
+  
 end

@@ -11,6 +11,9 @@ module Atech
       ## Raised if a frozen file is editted
       class CannotEditFrozenFile < Error; end
       
+      ## Raised if the data is larger than the maximum file size
+      class FileDataTooBig < Error; end
+      
       ## Returns a new file object for the given ID. If no file is found a FileNotFound exception will be raised
       ## otherwise the File object will be returned.
       def self.find_by_id(id)
@@ -34,6 +37,11 @@ module Atech
       ## Inserts a new File into the database. Returns a new object if successfully inserted or raises an error.
       ## Filename & data must be provided, options options will be added automatically unless specified.
       def self.add_file(filename, data = '', options = {})
+        
+        if data.bytesize > Atech::ObjectStore.maximum_file_size
+          raise FileDataTooBig, "Data provided was #{data.bytesize} and the maximum size is #{Atech::ObjectStore.maximum_file_size}"
+        end
+        
         ## Create a hash of properties to be for this class
         options[:name]          = filename
         options[:size]        ||= data.bytesize

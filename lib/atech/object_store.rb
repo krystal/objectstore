@@ -7,6 +7,12 @@ module Atech
     
     class << self
       attr_accessor :backend
+      attr_accessor :maximum_file_size
+      
+      def maximum_file_size
+        @maximum_file_size ||= 1024 * 1024 * 1024
+      end
+      
     end
     
   end
