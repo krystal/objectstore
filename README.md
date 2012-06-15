@@ -110,10 +110,10 @@ If you'd like to add additional data to the end of an existing file, you can do 
 for example:
 
 ```ruby
-file.data     #=> "ABC"
+file.blob     #=> "ABC"
 file.size     #=> 3
 file.append('DEF')
-file.data     #=> "ABCDEF"
+file.blob     #=> "ABCDEF"
 file.size     #=> 6
 ```
 
@@ -122,9 +122,9 @@ file.size     #=> 6
 If you'd like to overwrite the data stored for an existing file you can use the `overwrite` method, for example:
 
 ```ruby
-file.data     #=> "ABC"
+file.blob     #=> "ABC"
 file.overwrite("DEF")
-file.data     #=> "DEF"
+file.blob     #=> "DEF"
 ```
 
 #### Deleting a file
@@ -143,7 +143,7 @@ modification method, you will receive a `CannotEditFrozenFile` method.
 If you'd like to copy a file from your datastore to your local disk, you can use the `copy` method, for example:
 
 ```ruby
-file.data                               #=> "Hello World!"
+file.blob                               #=> "Hello World!"
 file.size                               #=> 12
 file.copy('path/to/my/localfile.txt')
 # Look at the local file
