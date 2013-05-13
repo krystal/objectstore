@@ -58,7 +58,7 @@ module Atech
         
         ##Create an insert query
         columns = options.keys.join('`,`')
-        data    = options.values.map { |data| escape_and_quote(data.to_s) }.join(',')
+        data    = options.values.map { |data| escape_and_quote(data) }.join(',')
         ObjectStore.backend.query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
 
         ## Return a new File object
@@ -164,7 +164,7 @@ module Atech
       
       def self.escape_and_quote(string)
         string = string.strftime('%Y-%m-%d %H:%M:%S') if string.is_a?(Time)
-        "'#{ObjectStore.backend.escape(string)}'"
+        "'#{ObjectStore.backend.escape(string.to_s)}'"
       end
       
       def self.time_now
