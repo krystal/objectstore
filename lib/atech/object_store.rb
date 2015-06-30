@@ -1,6 +1,6 @@
 module Atech
   module ObjectStore
-    VERSION = '1.0.0'
+    VERSION = '1.1.0'
     
     ## Error class which all Object Store errors are inherited fro
     class Error < StandardError; end
