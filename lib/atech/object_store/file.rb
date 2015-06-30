@@ -17,7 +17,13 @@ module Atech
       ## Returns a new file object for the given ID. If no file is found a FileNotFound exception will be raised
       ## otherwise the File object will be returned.
       def self.find_by_id(id)
-        result = ObjectStore.backend.query("SELECT * FROM files WHERE id = #{id.to_i}").first || raise(FileNotFound, "File not found with id '#{id.to_i}'")
+        result = nil
+        begin
+          result = ObjectStore.backend.query("SELECT * FROM files WHERE id = #{id.to_i}").first || raise(FileNotFound, "File not found with id '#{id.to_i}'")
+        rescue Mysql2::Error
+          # Retry once
+          result = ObjectStore.backend.query("SELECT * FROM files WHERE id = #{id.to_i}").first || raise(FileNotFound, "File not found with id '#{id.to_i}'")
+        end
         self.new(result)
       end
       
