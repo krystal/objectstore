@@ -26,8 +26,14 @@ module Atech
       ## Returns a new file object for the given ID. If no file is found a FileNotFound exception will be raised
       ## otherwise the File object will be returned.
       def self.find_by_id(id)
-        result = File.execute_query("SELECT * FROM files WHERE id = #{id.to_i}").first || raise(FileNotFound, "File not found with id '#{id.to_i}'")
-        self.new(result)
+        result = File.execute_query("SELECT * FROM files WHERE id = #{id.to_i}")
+        result = result.first if result
+
+        if result
+          self.new(result)
+        else
+          raise(FileNotFound, "File not found with id '#{id.to_i}'")
+        end
       end
 
       ## Imports a new file by passing a path and returning a new File object once it has been added to the database.
