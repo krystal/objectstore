@@ -26,7 +26,7 @@ module Atech
       ## Returns a new file object for the given ID. If no file is found a FileNotFound exception will be raised
       ## otherwise the File object will be returned.
       def self.find_by_id(id)
-        result = self.execute_query("SELECT * FROM files WHERE id = #{id.to_i}").first || raise(FileNotFound, "File not found with id '#{id.to_i}'")
+        result = File.execute_query("SELECT * FROM files WHERE id = #{id.to_i}").first || raise(FileNotFound, "File not found with id '#{id.to_i}'")
         self.new(result)
       end
 
@@ -68,7 +68,7 @@ module Atech
         ##Create an insert query
         columns = options.keys.join('`,`')
         data    = options.values.map { |data| escape_and_quote(data) }.join(',')
-        self.execute_query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
+        File.execute_query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
 
         ## Return a new File object
         self.new(options.merge({:id => ObjectStore.backend.last_id}))
@@ -129,14 +129,14 @@ module Atech
       ## Appends data to the end of the current blob and updates the size and update time as appropriate.
       def append(data)
         raise CannotEditFrozenFile, "This file has been frozen and cannot be appended to" if frozen?
-        self.execute_query("UPDATE files SET `blob` = CONCAT(`blob`, #{self.class.escape_and_quote(data)}), `size` = `size` + #{data.bytesize}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
+        File.execute_query("UPDATE files SET `blob` = CONCAT(`blob`, #{self.class.escape_and_quote(data)}), `size` = `size` + #{data.bytesize}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
         reload(true)
       end
 
       ## Overwrites any data which is stored in the file
       def overwrite(data)
         raise CannotEditFrozenFile, "This file has been frozen and cannot be overwriten" if frozen?
-        self.execute_query("UPDATE files SET `blob` = #{self.class.escape_and_quote(data)}, `size` = #{data.bytesize}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
+        File.execute_query("UPDATE files SET `blob` = #{self.class.escape_and_quote(data)}, `size` = #{data.bytesize}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
         @attributes['blob'] = data
         reload
       end
@@ -144,21 +144,21 @@ module Atech
       ## Changes the name for a file
       def rename(name)
         raise CannotEditFrozenFile, "This file has been frozen and cannot be renamed" if frozen?
-        self.execute_query("UPDATE files SET `name` = #{self.class.escape_and_quote(name)}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
+        File.execute_query("UPDATE files SET `name` = #{self.class.escape_and_quote(name)}, `updated_at` = '#{self.class.time_now}' WHERE id = #{@attributes['id']}")
         reload
       end
 
       ## Removes the file from the database
       def delete
         raise CannotEditFrozenFile, "This file has been frozen and cannot be deleted" if frozen?
-        self.execute_query("DELETE FROM files WHERE id = #{@attributes['id']}")
+        File.execute_query("DELETE FROM files WHERE id = #{@attributes['id']}")
         @frozen = true
       end
 
       ## Reload properties from the database. Optionally, pass true to include the blob
       ## in the update
       def reload(include_blob = false)
-        query = self.execute_query("SELECT #{include_blob ? '*' : '`id`, `name`, `size`, `created_at`, `updated_at`'} FROM files WHERE id = #{@attributes['id']}").first
+        query = File.execute_query("SELECT #{include_blob ? '*' : '`id`, `name`, `size`, `created_at`, `updated_at`'} FROM files WHERE id = #{@attributes['id']}").first
         @attributes.merge!(parsed_attributes(query))
       end
 
