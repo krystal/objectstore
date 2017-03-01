@@ -4,7 +4,7 @@ This tool allows you to easily create a MySQL-backed Object Store for storing fi
 If you're setting up something replicated, you can set up MySQL Replication to automatically
 replicate your data to other MySQL servers without any hassle.
 
-It is designed for storing (very) small files (attachments, documents, images, avatars etc...) 
+It is designed for storing (very) small files (attachments, documents, images, avatars etc...)
 in a datastore which can easily be replicated to other environments.
 
 ## Background
@@ -22,12 +22,13 @@ To get started, just add the following to your Gemfile.
 gem 'objectstore'
 ```
 
-Once you have the gem installed, you will need to point it to a MySQL Client. This can be a clean
-`Mysql2::Client` or something pooled if you're using this in a multi-threaded environment.
+Once you have the gem installed, you will need to point it to a MySQL database. Simply pass it a hash of options
+that will be provided to `Mysql2::Client`. ObjectStore will create a connection pool and lazily create connections
+to the database as required.
 
 ```ruby
 require 'atech/object_store'
-Atech::ObjectStore.backend = Mysql2::Client.new(:database => 'objectstore')
+Atech::ObjectStore.backend_options = {:database => 'objectstore', :username => 'user', :password => 'password'}
 ```
 
 You will need to create a corresponding MySQL database using the included schema. The database is very
@@ -42,7 +43,7 @@ mysql -p objectstore < schema.sql
 
 Let's imagine you've developed an e-mail platform and you need to store e-mail attachment files. You can
 store these on your file system but you want to be able to easily replicate these to an offsite location
-for DR purposes. 
+for DR purposes.
 
 Our primary database contains a table of attachments which include links back to their original e-mail but
 also a key to identify the file in our object store. When the user requests the attachment, the application

@@ -1,7 +1,6 @@
 module Atech
   module ObjectStore
     class File
-
       ## Raised when a file cannot be found
       class FileNotFound < Error; end
 
@@ -14,10 +13,14 @@ module Atech
       ## Raised if the data is larger than the maximum file size
       class FileDataTooBig < Error; end
 
-      ## Run a query on the backend database, attempt to run the query up to 3 times
+      # Run a single query on a backend connection. This should only be used when running a single query. If you need
+      # to do multiple things on the same connection (e.g. INSERT and then get LAST_INSERT_ID) you should checkot your
+      # own connection using ObejctStore::Connection.client
       def self.execute_query(query)
         tries ||= 3
-        ObjectStore.backend.query(query)
+        ObjectStore::Connection.client do |client|
+          client.query(query)
+        end
       rescue Mysql2::Error => e
         retry unless (tries -= 1).zero?
         raise
@@ -52,32 +55,34 @@ module Atech
       ## Inserts a new File into the database. Returns a new object if successfully inserted or raises an error.
       ## Filename & data must be provided, options options will be added automatically unless specified.
       def self.add_file(filename, data = '', options = {})
-
         if data.bytesize > Atech::ObjectStore.maximum_file_size
           raise FileDataTooBig, "Data provided was #{data.bytesize} and the maximum size is #{Atech::ObjectStore.maximum_file_size}"
         end
 
-        ## Create a hash of properties to be for this class
+        # Create a hash of properties to be for this class
         options[:name]          = filename
         options[:size]        ||= data.bytesize
         options[:blob]          = data
         options[:created_at]  ||= Time.now
         options[:updated_at]  ||= Time.now
 
-        ## Ensure that new files have a filename & data
+        # Ensure that new files have a filename & data
         raise ValidationError, "A 'name' must be provided to add a new file" if options[:name].nil?
 
-        ## Encode timestamps
+        # Encode timestamps
         options[:created_at] = options[:created_at].utc
         options[:updated_at] = options[:updated_at].utc
 
-        ##Create an insert query
-        columns = options.keys.join('`,`')
-        data    = options.values.map { |data| escape_and_quote(data) }.join(',')
-        File.execute_query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
+        # Create an insert query
+        last_insert_id = ObjectStore::Connection.client do |client|
+          columns = options.keys.join('`,`')
+          data = options.values.map { |v| escape_and_quote(v) }.join(',')
+          client.query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
+          client.last_id
+        end
 
         ## Return a new File object
-        self.new(options.merge({:id => ObjectStore.backend.last_id}))
+        self.new(options.merge(:id => last_insert_id))
       end
 
       ## Initialises a new File object with the hash of attributes from a MySQL query ensuring that
@@ -179,14 +184,12 @@ module Atech
 
       def self.escape_and_quote(string)
         string = string.strftime('%Y-%m-%d %H:%M:%S') if string.is_a?(Time)
-        "'#{ObjectStore.backend.escape(string.to_s)}'"
+        "'#{Mysql2::Client.escape(string.to_s)}'"
       end
 
       def self.time_now
         Time.now.utc.strftime('%Y-%m-%d %H:%M:%S')
       end
-
-
     end
   end
 end

@@ -1,5 +1,5 @@
 $LOAD_PATH.unshift(File.expand_path('../lib', __FILE__))
-require 'atech/object_store'
+require 'atech/object_store/version'
 
 Gem::Specification.new do |s|
   s.name = 'objectstore'
@@ -12,4 +12,5 @@ Gem::Specification.new do |s|
   s.author = "Adam Cooke"
   s.email = "adam@atechmedia.com"
   s.homepage = "http://www.atechmedia.com"
+  s.add_runtime_dependency "mysql2", '>= 0.3'
 end
