@@ -184,7 +184,9 @@ module Atech
 
       def self.escape_and_quote(string)
         string = string.strftime('%Y-%m-%d %H:%M:%S') if string.is_a?(Time)
-        "'#{Mysql2::Client.escape(string.to_s)}'"
+        ObjectStore::Connection.client do |client|
+          "'#{client.escape(string.to_s)}'"
+        end
       end
 
       def self.time_now
