@@ -13,6 +13,9 @@ module Atech
       ## Raised if the data is larger than the maximum file size
       class FileDataTooBig < Error; end
 
+      # Raised when a row could not be inserted into the database
+      class InsertError < Error; end
+
       # Run a single query on a backend connection. This should only be used when running a single query. If you need
       # to do multiple things on the same connection (e.g. INSERT and then get LAST_INSERT_ID) you should checkot your
       # own connection using ObejctStore::Connection.client
@@ -73,13 +76,7 @@ module Atech
         options[:created_at] = options[:created_at].utc
         options[:updated_at] = options[:updated_at].utc
 
-        # Create an insert query
-        last_insert_id = ObjectStore::Connection.client do |client|
-          columns = options.keys.join('`,`')
-          data = options.values.map { |v| escape_and_quote(v) }.join(',')
-          client.query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
-          client.last_id
-        end
+        last_insert_id = insert_into_database(options)
 
         ## Return a new File object
         self.new(options.merge(:id => last_insert_id))
@@ -180,6 +177,26 @@ module Atech
           hash[key.to_s] = value
           hash
         end
+      end
+
+      def self.insert_into_database(options)
+        retries = 0
+
+        # Create an insert query
+        last_insert_id = ObjectStore::Connection.client do |client|
+          columns = options.keys.join('`,`')
+          data = options.values.map { |v| escape_and_quote(v) }.join(',')
+          client.query("INSERT INTO files (`#{columns}`) VALUES (#{data})")
+          client.last_id
+        end
+
+        raise InsertError if last_insert_id == 0
+
+        last_insert_id
+      rescue InsertError => e
+        raise e if retries >= 2
+        retries += 1
+        retry
       end
 
       def self.escape_and_quote(string)
